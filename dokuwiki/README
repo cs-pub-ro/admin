@@ -1,0 +1,92 @@
+* Find the desired DokuWiki version for download.
+** Use this URL: http://www.splitbrain.org/projects/dokuwiki
+
+* Run install_dokuwiki
+** Sample run: 
+---
+so@elf:~/dokuwiki$ ./install_dokuwiki  ~/public_html/dokuwiki2/ http://www.splitbrain.org/_media/projects/dokuwiki/dokuwiki-2009-12-25.tgz http://elf.cs.pub.ro/so/wiki2/
+* Using download link http://www.splitbrain.org/_media/projects/dokuwiki/dokuwiki-2009-12-25.tgz
+  * Downloading DokuWiki ...  done.
+* Preparing installation folder /home/so/public_html/dokuwiki2/ ... done.
+* Installing plugins
+  * Installing plugin: Creole ... done.
+  * Installing plugin: Google Analytics ... done.
+  * Installing plugin: Include ... done.
+  * Installing plugin: Index-Menu ... done.
+  * Installing plugin: Display-Wiki-Page ...done.
+
+
+Installation complete.
+1. Open in web browser: http://elf.cs.pub.ro/so/wiki2/install.php
+2. After the install procedure run:
+   ./post_install_dokuwiki /home/so/public_html/dokuwiki2/ /so/wiki2/
+
+Now you're done.
+---
+
+* Open install URL (as mentioned in step 1 of the post-install message)
+and configure DokuWiki instance.
+** The web configuration interface is quite intuitive.
+** You will probably go for a public wiki (read access for everyone,
+and write access for registered users).
+
+* Run the post install script (as mentioned in step 2 of the
+post-install message.
+** Sample run:
+---
+so@elf:~/dokuwiki$ ./post_install_dokuwiki /home/so/public_html/dokuwiki2/ /so/wiki2/
+Add to '/home/so/public_html/dokuwiki2/conf/local.php' the following lines (use the web interface in case you don't have enough rights):
+
+$conf['start'] = 'home';
+$conf['youarehere'] = 1;
+$conf['sneaky_index'] = 1;
+$conf['userewrite'] = '1';
+$conf['securecookie'] = 0;
+$conf['useslash'] = 1;
+$conf['sepchar'] = '-';
+$conf['plugin']['creole']['precedence'] = 'creole';
+$conf['plugin']['indexmenu']['page_index'] = 'home:index';
+$conf['plugin']['indexmenu']['skip_index'] = '/(home|playground)/';
+$conf['plugin']['indexmenu']['skip_file'] = '/^:home:index.txt$/';
+
+
+Add to the beginning of '/home/so/public_html/dokuwiki2/.htaccess' (after 'RewriteEngine on') the following lines (in case you want to enable HTTPS access to login and admin pages):
+
+# Switch to secure on login, profile and admin actions
+RewriteCond %{HTTPS} !on
+RewriteCond %{QUERY_STRING} do=(log|profile|admin)
+RewriteRule ^(.*) https://%{HTTP_HOST}/so/wiki2/$1 [R,QSA,L]
+
+# Change back to non-secure on show action
+RewriteCond %{HTTPS} on
+RewriteCond %{QUERY_STRING} (do=show|^$)
+RewriteCond %{REQUEST_METHOD} GET
+RewriteRule ^(.*) http://%{HTTP_HOST}/so/wiki2/$1 [R,QSA,L]
+---
+
+* Add local.php configurations as mentioned in previous output. In case
+of no rights (the www-data user creates the file) use DokuWiki's web
+administrative interface.
+
+* In case you want HTTPS access, add the above mentioned configuration
+lines to the .htaccess file.
+
+* Create index files/menus
+** The main index file is home:index. Type 'home:index' in DokuWiki's
+search bar and create the page. For index display I usually add the
+following syntax:
+---
+{{indexmenu>..#2|js navbar nocookie id#random}}
+---
+** I usually add an index menu to the first page in the wiki (home)
+---
+= Wiki Name =
+
+{{indexmenu>..#1|js navbar nocookie id#random}}
+---
+** You can add indexes to namespaces (edit the $namespace/home page):
+---
+= Namespace Name ==
+
+{{indexmenu>.#2|js}}
+---

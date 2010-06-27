@@ -1,0 +1,61 @@
+#!/bin/bash
+
+if test $# -ne 2; then
+	echo "Error - Usage:"
+	echo "  $0 <destination-path> <rewrite-base>"
+	exit 1
+fi
+
+DEST_PATH=$1
+RW_BASE=$2
+
+cd $DEST_PATH
+sed "s|//|/|g" <<EOF
+Add the following lines to '$DEST_PATH/conf/local.php' (use the web interface in case you haven't got enough rights):
+
+\$conf['start'] = 'home';
+\$conf['youarehere'] = 1;
+\$conf['sneaky_index'] = 1;
+\$conf['userewrite'] = '1';
+\$conf['securecookie'] = 0;
+\$conf['useslash'] = 1;
+\$conf['sepchar'] = '-';
+\$conf['plugin']['creole']['precedence'] = 'creole';
+\$conf['plugin']['indexmenu']['page_index'] = 'home:index';
+\$conf['plugin']['indexmenu']['skip_index'] = '/(home|playground)/';
+\$conf['plugin']['indexmenu']['skip_file'] = '/^:home:index.txt$/';
+EOF
+
+echo; echo
+
+sed "s|[^:]//|/|g" <<EOF
+Add the following lines to the beginning of '$DEST_PATH/.htaccess' (after 'RewriteEngine on') (in case you want to enable HTTPS access for login and admin actions):
+
+# Switch to secure on login, profile and admin actions
+RewriteCond %{HTTPS} !on
+RewriteCond %{QUERY_STRING} do=(log|profile|admin)
+RewriteRule ^(.*) https://%{HTTP_HOST}/$RW_BASE/\$1 [R,QSA,L]
+
+# Change back to non-secure on show action
+RewriteCond %{HTTPS} on
+RewriteCond %{QUERY_STRING} (do=show|^$)
+RewriteCond %{REQUEST_METHOD} GET
+RewriteRule ^(.*) http://%{HTTP_HOST}/$RW_BASE/\$1 [R,QSA,L]
+EOF
+
+sed "s|//|/|g" > .htaccess <<EOF
+RewriteEngine on
+
+# Rewrite pretty URLs
+RewriteBase $RW_BASE
+
+RewriteRule ^_media/(.*)              lib/exe/fetch.php?media=\$1  [QSA,L]
+RewriteRule ^_detail/(.*)             lib/exe/detail.php?media=\$1  [QSA,L]
+RewriteRule ^_export/([^/]+)/(.*)     doku.php?do=export_\$1&id=\$2  [QSA,L]
+RewriteRule ^\$                        doku.php  [L]
+RewriteCond %{REQUEST_FILENAME}       !-f
+RewriteCond %{REQUEST_FILENAME}       !-d
+RewriteRule (.*)                      doku.php?id=\$1  [QSA,L]
+EOF
+
+chmod 644 .htaccess

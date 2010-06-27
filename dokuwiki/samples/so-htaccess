@@ -1,0 +1,23 @@
+RewriteEngine on
+
+# Switch to secure on login, profile and admin actions
+RewriteCond %{HTTPS} !on
+RewriteCond %{QUERY_STRING} do=(log|profile|admin)
+RewriteRule ^(.*) https://%{HTTP_HOST}/so/wiki/$1 [R,QSA,L]
+
+# Change back to non-secure on show action
+RewriteCond %{HTTPS} on
+RewriteCond %{QUERY_STRING} (do=show|^$)
+RewriteCond %{REQUEST_METHOD} GET
+RewriteRule ^(.*) http://%{HTTP_HOST}/so/wiki/$1 [R,QSA,L]
+
+# Rewrite pretty URLs
+RewriteBase /so/wiki
+
+RewriteRule ^_media/(.*)              lib/exe/fetch.php?media=$1  [QSA,L]
+RewriteRule ^_detail/(.*)             lib/exe/detail.php?media=$1  [QSA,L]
+RewriteRule ^_export/([^/]+)/(.*)     doku.php?do=export_$1&id=$2  [QSA,L]
+RewriteRule ^$                        doku.php  [L]
+RewriteCond %{REQUEST_FILENAME}       !-f
+RewriteCond %{REQUEST_FILENAME}       !-d
+RewriteRule (.*)                      doku.php?id=$1  [QSA,L]

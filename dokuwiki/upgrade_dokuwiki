@@ -1,0 +1,110 @@
+#!/bin/bash
+
+#
+# Upgrade Dokuwiki installation
+#
+# Sample run:
+#    ./upgrade_dokuwiki ~srisp/public_html/dokuwiki/ ~srisp/public_html/bak/ http://www.splitbrain.org/_media/projects/dokuwiki/dokuwiki-2009-12-25c.tgz
+#
+# 2010, Razvan Deaconescu, razvan@rosedu.org
+#
+
+function err()
+{
+	echo $* 1>&2
+}
+
+if test $# -ne 3; then
+	err "Error - Usage:"
+	err "  $0 <dokuwiki-install-path> <backup-path> <dokuwiki-download-url>"
+	exit 1
+fi
+
+DOKUWIKI_PATH=$1
+BACKUP_PATH=$2
+DOKUWIKI_URL=$3
+WORKING_DIR=/tmp/
+DOKUWIKI_TMP=dokuwiki
+DOKUWIKI_USER=$(stat -c %U $DOKUWIKI_PATH)
+DOKUWIKI_GROUP=$(stat -c %G $DOKUWIKI_PATH)
+
+function check()
+{
+	if test $EUID -ne 0; then
+		err "Error: This script must be run as root"
+		exit 1
+	fi
+
+	if ! test -d $DOKUWIKI_PATH; then
+		err "Error: $DOKUWIKI_PATH is not a folder"
+		exit 1
+	fi
+
+	if ! test -d $BACKUP_PATH; then
+		err "Error: $BACKUP_PATH is not a folder"
+		exit 1
+	fi
+}
+
+function init()
+{
+	cd $WORKING_DIR
+	rm -fr $DOKUWIKI_TMP
+	mkdir $DOKUWIKI_TMP
+	cd $DOKUWIKI_TMP
+
+	echo -n " * Downloading Dokuwiki from $DOKUWIKI_URL ... "
+	wget "$DOKUWIKI_URL" -O $DOKUWIKI_TMP.tar.gz -o /tmp/wget.log
+	echo "done"
+	
+	echo -n " * Unpacking Dokuwiki to $WORKING_DIR/$DOKUWIKI_TMP ... "
+	tar xzf $DOKUWIKI_TMP.tar.gz
+	rm $DOKUWIKI_TMP.tar.gz
+	dname=$(find -mindepth 1 -maxdepth 1 | head -n 1)
+	mv $dname/* .
+	rm -fr $dname
+	echo "done"
+}
+
+function backup()
+{
+	backup=$BACKUP_PATH/dokuwiki-bak-$(date +%Y-%m-%d)
+	echo -n " * Backing up Dokuwiki instance to $backup ... "
+	'cp' -fr $DOKUWIKI_PATH $backup
+	chown $DOKUWIKI_USER:$DOKUWIKI_GROUP $backup
+	echo "done"
+}
+
+function upgrade()
+{
+	echo -n " * Upgrading Dokuwiki installation in $DOKUWIKI_PATH ... "
+	'cp' -fr $WORKING_DIR/$DOKUWIKI_TMP/* $DOKUWIKI_PATH
+}
+
+function check_rights()
+{
+	cd $DOKUWIKI_PATH/
+	find . -user root -exec chown $DOKUWIKI_USER:$DOKUWIKI_GROUP {} \;
+	echo "done"
+}
+
+function cleanup()
+{
+	echo -n " * Cleaning up temporary files ... "
+	rm -fr $WORKING_DIR/$DOKUWIKI_TMP.tar.gz && rm -fr $WORKING_DIR/$DOKUWIKI_TMP
+	echo "done"
+}
+
+echo
+
+cleanup
+check
+init
+backup
+upgrade
+check_rights
+cleanup
+
+echo
+
+exit 0

@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# find all directories that do not have
+# at least the following permissions set o=rwx, g=rx
+# and list them
+
+#if [ $# -eq 0 ]; then
+#	echo "Usage: $0 [user] [public_html dir]"
+#	exit 1
+#fi
+
+if [ $# -ge 1 ]; then
+	u="$1"
+else
+	u="$USER"
+fi
+
+if [ $# -ge 2 ]; then
+	pub_dir="$2"
+else
+	pub_dir="public_html"
+fi
+
+eval cd ~$u/$pub_dir
+if [ $? -ne 0 ]; then
+	echo "Error. Aborting."
+	exit 0;
+fi
+
+echo "* Full path: $(pwd)"
+
+#find . -type d -not -perm -750 -exec ls -ld {} \;
+#find . -type d -not -perm -750 -exec chmod 750 {} \;
+
+# fixing permissions
+echo "* Activating group 'inheritance' for $pub_dir"
+find . -type d -exec chmod g+s {} \;
+
+echo "* Setting group ownership to www-data for $pub_dir"
+chown -R $u:www-data *
+
+echo "* Adding access rights to:"
+echo "  - allow read access for group www-data"
+echo "  - allow read-write access for owner"
+find . -exec chmod u+rw,g+r {} \;
+find . -type d -exec chmod u+x,g+x {} \;
+
+echo "* Paths that allow others access to the files:"
+find . -perm /007 -exec ls -ld {} \;
+echo "* WARNING: The paths listed in the above list can leak important information"
+
+echo
+echo "* Done."

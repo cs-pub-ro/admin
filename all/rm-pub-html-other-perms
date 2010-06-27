@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# find all directories that do not have
+# at least the following permissions set o=rwx, g=rx
+# and list them
+
+#if [ $# -eq 0 ]; then
+#	echo "Usage: $0 [user] [public_html dir]"
+#	exit 1
+#fi
+
+if [ $# -ge 1 ]; then
+	u="$1"
+else
+	u="$USER"
+fi
+
+if [ $# -ge 2 ]; then
+	pub_dir="$2"
+else
+	pub_dir="public_html"
+fi
+
+eval cd ~$u/$pub_dir
+if [ $? -ne 0 ]; then
+	echo "Error. Aborting."
+	exit 0;
+fi
+
+echo "* Full path: $(pwd)"
+
+echo "* Removing all access rights for others from:"
+find . -print -exec chmod o-rwx {} \;
+
+echo
+echo "* Done."

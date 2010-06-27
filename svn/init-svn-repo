@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if test $# -ne 1; then
+	echo "Usage: $0 repository-folder"
+	exit 1
+fi
+
+repo=$1
+if test -f $1; then
+	echo "Error: couldn't create folder. $1 already exists."
+	exit 1
+fi
+
+mkdir $1 || (echo -e "\nError creating folder $1."; exit 1)
+
+cd $1 || (echo -e "\nUnable to chdir to $1."; exit 1)
+
+svnadmin create . || (echo -e "\nUnable to create Subversion repository."; exit 1)
+
+rm -fr /tmp/$USER-svn-init/
+
+mkdir /tmp/$USER-svn-init/ || (echo -e "\nError creating folder /tmp/$USER-svn-init/"; exit 1)
+
+mkdir /tmp/$USER-svn-init/trunk/ && mkdir /tmp/$USER-svn-init/branches/ && mkdir /tmp/$USER-svn-init/tags/
+
+svn import /tmp/$USER-svn-init/ file:///$(pwd) -m 'initial import' || (echo -e "\nError importing into Subversion repository."; exit 1)

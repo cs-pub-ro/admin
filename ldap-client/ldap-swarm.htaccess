@@ -1,0 +1,11 @@
+RewriteEngine On
+
+RewriteCond %{HTTPS} !on
+RewriteRule (.*) https://koala.cs.pub.ro/~lxr$1 [L,R]
+
+AuthType Basic
+AuthName "Windows Research Kernel (use curs.cs.pub.ro account)"
+AuthBasicProvider ldap
+AuthzLDAPAuthoritative on
+AuthLDAPURL "ldaps://swarm.cs.pub.ro:636/ou=People,dc=swarm,dc=cs,dc=pub,dc=ro?uid"
+Require valid-user

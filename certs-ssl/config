@@ -1,0 +1,7 @@
+#!/bin/bash
+
+APACHE_PATH=/etc/apache2
+APACHE_SITES=$APACHE_PATH/sites-available
+KEY_PATH=$APACHE_PATH/ssl.key
+CSR_PATH=$APACHE_PATH/ssl.csr
+CRT_PATH=$APACHE_PATH/ssl.crt

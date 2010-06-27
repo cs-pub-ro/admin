@@ -1,0 +1,9 @@
+# cs.curs.pub.ro (use from rosedu.org - IP-based filtering)
+ldapsearch -x -D "aaaa,dc=cs,dc=curs,dc=pub,dc=ro" -w bbbb -H ldaps://ldap.grid.pub.ro -b "dc=cs,dc=curs,dc=pub,dc=ro"
+ldapsearch -x -D "aaaa,dc=cs,dc=curs,dc=pub,dc=ro" -w bbbb -H ldaps://ldap.grid.pub.ro -b "dc=cs,dc=curs,dc=pub,dc=ro" "uid=razvan.deaconescu"
+
+# swarm.cs.pub.ro
+ldapsearch -x -H ldaps://swarm.cs.pub.ro -b "dc=swarm,dc=cs,dc=pub,dc=ro
+ldapsearch -x -H ldaps://swarm.cs.pub.ro -b "dc=swarm,dc=cs,dc=pub,dc=ro" "uid=gogu"
+ldapsearch -x -H ldaps://swarm.cs.pub.ro -b "dc=swarm,dc=cs,dc=pub,dc=ro" "cn=rosedu"
+ldapsearch -x -H ldaps://swarm.cs.pub.ro -b "ou=people,dc=swarm,dc=cs,dc=pub,dc=ro"
