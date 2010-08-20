@@ -1,0 +1,45 @@
+#!/bin/bash
+
+if test $# -ne 2 -a $# -ne 3; then
+	echo "Usage: $(basename $0) ve_id ve_hostname [ve_base_path]"
+	exit 1
+fi
+
+ve_id=$1
+ve_hostname=$2
+
+if test $# -eq 3; then
+	ve_base_path=$(dirname $3/.)
+	if ! test -d $ve_base_path; then
+		echo "Error: $ve_base_path does not exist"
+		exit 1
+	fi
+	vzctl create $ve_id --ostemplate debian-4.1-amd64-minimal --private $ve_base_path/$ve_id --hostname $ve_hostname
+else
+	vzctl create $ve_id --ostemplate debian-4.1-amd64-minimal --hostname $ve_hostname
+fi
+
+ve_ip_add=172.16.$(($ve_id / 10)).$(($ve_id % 10)) 
+vzctl set $ve_id --nameserver 141.85.37.11 --searchdomain cs.pub.ro --save
+vzctl set $ve_id --ipadd $ve_ip_add --save
+
+# add DNAT rules for SSH and HTTP
+iptables -t nat -A PREROUTING -i br0 -p tcp --dport "$ve_id"22 -j DNAT --to-destination $ve_ip_add:22
+iptables -t nat -A PREROUTING -i br0 -p tcp --dport "$ve_id"80 -j DNAT --to-destination $ve_ip_add:80
+
+# save iptables rules
+iptables-save > /etc/network/iptables.rules
+
+# allocate 512MB RAM
+vzctl set $ve_id --privvmpages 131072 --save
+
+# allocate 10GB of disk space
+vzctl set $ve_id --diskspace 20G:20G --diskinodes unlimited --save
+vzctl start $ve_id
+
+# change root password
+stty -echo
+vzctl exec $ve_id passwd
+stty echo
+
+exit 0

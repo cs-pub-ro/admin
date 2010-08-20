@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if test $# -ne 1; then
+	echo "Usage: $0 ve_id"
+	exit 1
+fi
+
+ve_id=$1
+
+ve_ip_add=172.16.$(($ve_id / 10)).$(($ve_id % 10)) 
+
+vzctl stop $ve_id
+vzctl destroy $ve_id
+rm /etc/vz/conf/$ve_id.conf.destroyed
+
+# add DNAT rules for SSH and HTTP
+iptables -t nat -D PREROUTING -p tcp --dport "$ve_id"22 -j DNAT --to-destination $ve_ip_add:22
+iptables -t nat -D PREROUTING -p tcp --dport "$ve_id"80 -j DNAT --to-destination $ve_ip_add:80
+
+# save iptables rules
+iptables-save > /etc/network/iptables.rules
+
+exit 0

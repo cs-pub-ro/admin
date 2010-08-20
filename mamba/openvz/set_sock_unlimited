@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if test $# -ne 1; then
+	echo "Usage: set_sock_unlimited ve_id"
+	exit 1
+fi
+
+ve_id=$1
+
+vzctl set $ve_id --tcpsndbuf 999999999:999999999 --save
+vzctl set $ve_id --tcprcvbuf 999999999:999999999 --save
+vzctl set $ve_id --numtcpsock 999999999:999999999 --save
+vzctl set $ve_id --numflock 999999999:999999999 --save
+vzctl set $ve_id --othersockbuf 999999999:999999999 --save
+vzctl set $ve_id --numothersock 999999999:999999999 --save
+vzctl set $ve_id --numfile 999999999:999999999 --save
+
+exit 0

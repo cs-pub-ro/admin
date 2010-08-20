@@ -1,0 +1,49 @@
+#!/bin/sh
+# taken from: http://www.jaguarpc.com/forums/showthread.php?t=17094
+# on 2009-03-01
+
+# Mircea Bardac: must be somehow improved with
+# http://wiki.openvz.org/Proc/user_beancounters#Reading
+
+# Make sure we are running under a VPS system with QoS
+if [ ! -f "/proc/user_beancounters" ]; then
+	echo "File \"/proc/user_beancounters\" does not exist. Make sure this script runs on a VPS system with QoS enabled."
+	exit $E_NOFILE
+fi
+
+# Get memory related variables
+let GMEM=`grep vmguarpages /proc/user_beancounters | awk '{print$4}'`/1024*4
+let BRST=`grep privvmpages /proc/user_beancounters | awk '{print$5}'`/1024*4
+let CMEM=`grep physpages /proc/user_beancounters | awk '{print$2}'`/1024*4
+let REQM=`grep privvmpages /proc/user_beancounters | awk '{print$2}'`/1024*4
+let FREE=$GMEM-$CMEM
+
+# Calculate free memory
+if [ "$FREE" -gt "0" ]; then
+	let CMEMP=$CMEM*100/$GMEM
+	let FREEP=100-$CMEMP
+else
+	let CMEMP="100"
+	let FREEP="0"
+fi
+
+let REQMP=$REQM*100/$GMEM
+
+# Calculate pretty output
+if [ ${#CMEM} -gt ${#FREE} ]; then
+	let LIMIT=${#CMEM}-${#FREE}
+	SPACE=''
+	while [ $LIMIT -gt 0 ]; do
+		SPACE=" $SPACE"
+		LIMIT=`expr $LIMIT - 1`
+	done
+else
+	SPACE=''
+fi
+
+# Echo results
+echo "Memory limit...: $GMEM MB (burstable: $BRST MB) [vmguardpages(barrier)),  burstable: privvmpages(limit)]"
+echo "Requested......: $REQM MB (${REQMP}%) [privvmpages(held)]"
+echo "Current usage..: $CMEM MB (${CMEMP}%) [physpages(held)]"
+echo "Free memory....: $FREE MB ${SPACE}(${FREEP}%)"
+

@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+
+import time
+
+v=[]
+for i in range(100):
+	p=64*1024*1024*" "
+	v=[ v, p ]
+	time.sleep(1)
