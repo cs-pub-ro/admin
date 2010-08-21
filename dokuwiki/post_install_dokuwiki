@@ -28,7 +28,7 @@ EOF
 
 echo; echo
 
-sed "s|[^:]//|/|g" <<EOF
+sed "s|\([^:]\)//|\1/|g" <<EOF
 Add the following lines to the beginning of '$DEST_PATH/.htaccess' (after 'RewriteEngine on') (in case you want to enable HTTPS access for login and admin actions):
 
 # Switch to secure on login, profile and admin actions
