@@ -25,6 +25,7 @@ BACKUP_PATH=$2
 DOKUWIKI_URL=$3
 WORKING_DIR=/tmp
 DOKUWIKI_TMP=dokuwiki
+LOGFILE=$(mktemp)
 
 function check()
 {
@@ -46,8 +47,9 @@ function init()
 	mkdir $DOKUWIKI_TMP
 	cd $DOKUWIKI_TMP
 
+        echo "Log file is $LOGFILE."
 	echo -n " * Downloading Dokuwiki from $DOKUWIKI_URL ... "
-	wget "$DOKUWIKI_URL" -O $DOKUWIKI_TMP.tar.gz -o /tmp/wget.log
+	wget "$DOKUWIKI_URL" -O $DOKUWIKI_TMP.tar.gz -a $LOGFILE
 	echo "done"
 	
 	echo -n " * Unpacking Dokuwiki to $WORKING_DIR/$DOKUWIKI_TMP ... "
@@ -84,7 +86,7 @@ function upgrade_plugins()
     echo -n "  * Installing plugin: Creole ... "
     # Plugin: Creole
     # from: http://www.dokuwiki.org/plugin:creole
-    wget https://github.com/dokufreaks/plugin-creole/tarball/master -O plugin-creole.tar.gz -a wget.log
+    wget https://github.com/dokufreaks/plugin-creole/tarball/master -O plugin-creole.tar.gz -a $LOGFILE
     tar xzf plugin-creole.tar.gz > /dev/null 2>&1
     rm -fr creole
     mv *-plugin-creole-* creole
@@ -94,7 +96,7 @@ function upgrade_plugins()
     echo -n "  * Installing plugin: Google Analytics ... "
     # Plugin: Google Analytics
     # from: http://www.dokuwiki.org/plugin:googleanalytics
-    wget http://cloud.github.com/downloads/tatewake/dokuwiki-plugin-googleanalytics/googleanalytics-stable.tar.gz -a wget.log
+    wget http://cloud.github.com/downloads/tatewake/dokuwiki-plugin-googleanalytics/googleanalytics-stable.tar.gz -a $LOGFILE
     tar xzf googleanalytics-stable.tar.gz > /dev/null 2>&1
     rm -f googleanalytics-stable.tar.gz
     echo "done."
@@ -102,7 +104,7 @@ function upgrade_plugins()
     echo -n "  * Installing plugin: Include ... "
     # Plugin: include
     # from: http://www.dokuwiki.org/plugin:include
-    wget http://github.com/dokufreaks/plugin-include/tarball/master -O plugin-include.tar.gz -a wget.log
+    wget http://github.com/dokufreaks/plugin-include/tarball/master -O plugin-include.tar.gz -a $LOGFILE
     tar xzf plugin-include.tar.gz > /dev/null 2>&1
     # Remove old include folder. Add new one.
     rm -fr include
@@ -113,7 +115,7 @@ function upgrade_plugins()
     echo -n "  * Installing plugin: Index-Menu ... "
     # Plugin: index menu
     # from: http://www.dokuwiki.org/plugin:indexmenu
-    wget http://samuele.netsons.org/dokuwiki/media/indexmenu.zip -a wget.log
+    wget http://samuele.netsons.org/dokuwiki/media/indexmenu.zip -a $LOGFILE
     unzip -o indexmenu.zip > /dev/null 2>&1
     rm -f indexmenu.zip
     echo "done."
@@ -121,7 +123,7 @@ function upgrade_plugins()
     echo -n "  * Installing plugin: Display-Wiki-Page ..."
     # Plugin: display wiki page
     # from: http://www.dokuwiki.org/plugin:displaywikipage
-    wget http://cloud.github.com/downloads/tatewake/dokuwiki-plugin-displaywikipage/displaywikipage-stable.tar.gz -a wget.log
+    wget http://cloud.github.com/downloads/tatewake/dokuwiki-plugin-displaywikipage/displaywikipage-stable.tar.gz -a $LOGFILE
     tar xzf displaywikipage-stable.tar.gz > /dev/null 2>&1
     rm -f displaywikipage-stable.tar.gz
     echo "done."
@@ -132,7 +134,7 @@ function upgrade_plugins()
     echo -n "  * Installing ggauth backend ..."
     # Experimental Auth Backends
     # from: http://www.dokuwiki.org/auth:ggauth
-    wget http://lastweekend.com.au/ggauth.5.zip -a wget.log
+    wget http://lastweekend.com.au/ggauth.5.zip -a $LOGFILE
     unzip -o ggauth.5.zip > /dev/null 2>&1
     rm -f ggauth.5.zip
     echo "done."
