@@ -16,8 +16,8 @@ DW_DOWN_URL=$2
 DW_URL=$3
 
 if ! [ -d $DEST_PATH ]; then
-	echo "Error: first argument has to be an existing folder"
-	exit 1
+	echo "Warning: $DEST_PATH doesn't exist. Creating it."
+	mkdir $DEST_PATH || exit 1
 fi
 
 # check if destionation folder is empty
@@ -32,10 +32,11 @@ if ! test -z "$_tmp_str"; then
 fi
 
 # === download ===
+pushd $DEST_PATH > /dev/null
+
 echo "* Using download link $DW_DOWN_URL"
 echo -n "  * Downloading DokuWiki ... "
 
-cd $DEST_PATH
 wget $DW_DOWN_URL -O dokuwiki.tar.gz -a wget.log
 tar zxf dokuwiki.tar.gz
 d=$(find . -maxdepth 1 -type d | grep -v "^.$" | head -n 1)
@@ -63,41 +64,43 @@ sed -ibak "s/^\(\$dokuwiki_hash.*\)$/\1\n    '$date'   => '$hash',/" install.php
 
 echo "done."
 
-old_dir=$(pwd)
+popd > /dev/null
 
-# === install plugins === #
+# === install plugins ===
+
+pushd $DEST_PATH/lib/plugins > /dev/null
+
 echo "* Installing plugins"
-cd lib/plugins/
 
 echo -n "  * Installing plugin: Creole ... "
 # Plugin: Creole
 # from: http://www.dokuwiki.org/plugin:creole
-wget http://www.chimeric.de/_src/plugin-creole.tgz -a wget.log
-tar zxf plugin-creole.tgz
-rm -f plugin-creole.tgz
+wget https://github.com/dokufreaks/plugin-creole/tarball/master -O plugin-creole.tar.gz -a wget.log
+tar xzf plugin-creole.tar.gz > /dev/null 2>&1
+rm -f plugin-creole.tar.gz
 echo "done."
 
 echo -n "  * Installing plugin: Google Analytics ... "
 # Plugin: Google Analytics
 # from: http://www.dokuwiki.org/plugin:googleanalytics
 wget http://cloud.github.com/downloads/tatewake/dokuwiki-plugin-googleanalytics/googleanalytics-stable.tar.gz -a wget.log
-tar -xzf googleanalytics-stable.tar.gz > /dev/null
+tar xzf googleanalytics-stable.tar.gz > /dev/null 2>&1
 rm -f googleanalytics-stable.tar.gz
 echo "done."
 
 echo -n "  * Installing plugin: Include ... "
 # Plugin: include
 # from: http://www.dokuwiki.org/plugin:include
-wget http://www.chimeric.de/_src/plugin-include.tgz -a wget.log
-tar -xzf plugin-include.tgz
-rm -f plugin-include.tgz
+wget http://github.com/dokufreaks/plugin-include/tarball/master -O plugin-include.tar.gz -a wget.log
+tar xzf plugin-include.tar.gz > /dev/null 2>&1
+rm -f plugin-include.tar.gz
 echo "done."
 
 echo -n "  * Installing plugin: Index-Menu ... "
 # Plugin: index menu
 # from: http://www.dokuwiki.org/plugin:indexmenu
 wget http://samuele.netsons.org/dokuwiki/media/indexmenu.zip -a wget.log
-unzip indexmenu.zip > /dev/null
+unzip indexmenu.zip > /dev/null 2>&1
 rm -f indexmenu.zip
 echo "done."
 
@@ -105,9 +108,25 @@ echo -n "  * Installing plugin: Display-Wiki-Page ..."
 # Plugin: display wiki page
 # from: http://www.dokuwiki.org/plugin:displaywikipage
 wget http://cloud.github.com/downloads/tatewake/dokuwiki-plugin-displaywikipage/displaywikipage-stable.tar.gz -a wget.log
-tar -xzf displaywikipage-stable.tar.gz > /dev/null
+tar xzf displaywikipage-stable.tar.gz > /dev/null 2>&1
 rm -f displaywikipage-stable.tar.gz
 echo "done."
+
+popd > /dev/null
+
+# === install extra juice ===
+
+pushd $DEST_PATH > /dev/null
+
+echo -n "  * Installing ggauth backend ..."
+# Experimental Auth Backends
+# from: http://www.dokuwiki.org/auth:ggauth
+wget http://lastweekend.com.au/ggauth.5.zip -a wget.log
+unzip -o ggauth.5.zip > /dev/null 2>&1
+rm -f ggauth.5.zip
+echo "done."
+
+popd > /dev/null
 
 # add slash to DokuWiki URL in case it doesn't exist
 dw_url_slash=$(sed "s|[/]\?[ \t]*/$|/|" <<<"$DW_URL/")
