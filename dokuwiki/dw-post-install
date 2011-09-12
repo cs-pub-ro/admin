@@ -1,0 +1,87 @@
+#!/bin/bash
+
+#
+# Complete installation of DokuWiki: wiki and plugin configuration and
+# configuration of pretty URLs and HTTPS.
+#
+# 2009, Mircea Bardac, cs@mircea.bardac.net
+# 2009-2011, Razvan Deaconescu, razvan.deaconescu@cs.pub.ro
+#
+
+# Read functions.
+source common
+
+if test $# -ne 2; then
+    err "DokuWiki post installation script"
+    err "  Usage:"
+    err "    $0 installation-directory rewrite-base"
+    err "  Sample usage:"
+    err "    $0 /home/razvan/public_html/dw-test/ /~razvan/dw-test/"
+    exit 1
+fi
+
+install_dir=$(remove_trailing_slash "$1")
+rw_base=$(remove_trailing_slash "$2")
+
+pushd $install_dir > /dev/null
+
+echo -n " * Updating conf/local.php ... "
+# In case www-data owns conf/local.php we can't ovewrite it, but we can
+# remove it.
+cp conf/local.php tmp-local.php
+rm -f conf/local.php
+
+cat >> tmp-local.php <<EOF
+\$conf['start'] = 'home';
+\$conf['youarehere'] = '1';
+\$conf['useheading'] = '1';
+\$conf['sneaky_index'] = '1';
+\$conf['userewrite'] = '1';
+\$conf['securecookie'] = '0';
+\$conf['useslash'] = '1';
+\$conf['sepchar'] = '-';
+\$conf['plugin']['creole']['precedence'] = 'creole';
+\$conf['plugin']['indexmenu']['page_index'] = 'home:index';
+\$conf['plugin']['indexmenu']['skip_index'] = '/(home|playground|wiki)/';
+\$conf['plugin']['indexmenu']['skip_file'] = '/(^:home:index.txt$|^home)/';
+EOF
+
+mv tmp-local.php conf/local.php
+# Restore www-data write access rights.
+chmod g+w conf/local.php
+
+echo "done."
+
+echo -n " * Updating .htaccess ... "
+
+cat > .htaccess <<EOF
+RewriteEngine on
+
+# Switch to secure on login, profile and admin actions
+RewriteCond %{HTTPS} !on
+RewriteCond %{QUERY_STRING} do=(log|profile|admin)
+RewriteRule ^(.*) https://%{HTTP_HOST}/$rw_base/\$1 [R,QSA,L]
+
+# Change back to non-secure on show action
+RewriteCond %{HTTPS} on
+RewriteCond %{QUERY_STRING} (do=show|^$)
+RewriteCond %{REQUEST_METHOD} GET
+RewriteRule ^(.*) http://%{HTTP_HOST}/$rw_base/\$1 [R,QSA,L]
+
+# Rewrite pretty URLs
+RewriteBase $rw_base
+
+RewriteRule ^_media/(.*)              lib/exe/fetch.php?media=\$1  [QSA,L]
+RewriteRule ^_detail/(.*)             lib/exe/detail.php?media=\$1  [QSA,L]
+RewriteRule ^_export/([^/]+)/(.*)     doku.php?do=export_\$1&id=\$2  [QSA,L]
+RewriteRule ^\$                        doku.php  [L]
+RewriteCond %{REQUEST_FILENAME}       !-f
+RewriteCond %{REQUEST_FILENAME}       !-d
+RewriteRule (.*)                      doku.php?id=\$1  [QSA,L]
+EOF
+
+chmod 644 .htaccess
+
+echo "done."
+
+popd > /dev/null

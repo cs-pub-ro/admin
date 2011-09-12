@@ -1,92 +1,154 @@
-* Find the desired DokuWiki version for download.
-** Use this URL: http://www.splitbrain.org/projects/dokuwiki
+Install and configure DokuWiki.
 
-* Run install_dokuwiki
-** Sample run: 
+Features:
+* Automatic deployment of DokuWiki.
+* Automatic installation and documentation of plugins (IndexMenu, Include).
+* Configure pretty URLs.
+* Configure HTTPS support for login.
+* Sample configuration of LDAP support.
+* Automatic upgrade.
+
+
+= Files =
+
+
+README			- this file
+dw-install		- basic install and configuration of DokuWiki
+dw-post-install		- script for completing DokuWiki installation
+dw-upgrade		- upgrade DokuWiki as root
+dw-upgrade-no-root	- upgrade DokuWiki as normal user
+common			- common functions used throughout scripts
+samples/		- sample configurations
+
+
+== Sample Configuration Files ==
+
+
+Sample configuration files are stored in the samples/ folder.
+
+so-local.php		- sample $DW_ROOT/conf/local.php using LDAP
+			  authentication
+so-split-auth.php	- sample $DW_ROOT/conf/local.php using split
+			  authentication (authentication through LDAP,
+			  authorization through plain files)
+so-htaccess		- sample $DW_ROOT/.htaccess file (pretty URLs
+			  and HTTPS support)
+dokuwiki-ldap-auth*	- LDAP snippet configuration (part of
+			  $DW_ROOT/conf/local.php
+
+
+= Installing DokuWiki =
+
+
+As a prerequisite, the script assumes the folder where DokuWiki is to be
+installed uses group www-data and the setgid bit is enabled. This is
+required in order to provide write access to the web server user to
+data/ and conf/ subfolders.
+
+In case you are unable or unwilling to provide that configuration, you
+would have to update two lines in the `dw-install' script. Instead of:
+    ---
+    # Adding write permissions to conf/ and data/ folders.
+    chmod -R g+w conf/
+    chmod -R g+w data/
+    ---
+you would have to use:
+    ---
+    # Adding write permissions to conf/ and data/ folders.
+    chmod -R a+w conf/
+    chmod -R a+w data/
+    ---
+This way you will grant write access to all users, thus including
+www-data. Be careful, though, as this is a security issue.
+
+Three arguments are passed to the install script:
+* the DokuWiki install directory
+* the URL of the DokuWiki archive
+* the accessible URL for the future DokuWiki installation
+
+The DokuWiki install directory will be created in case it doesn't exist.
+Remember the use of the setgid bit. In case the install directory is not
+empty, the installation process aborts.
+
+DokuWiki archives are typically found here[1]. Pass the URL to the
+archive to the install script. I usually choose the current "stable"
+version as pointed out in the site.
+
+Running the `dw-install' script with no arguments presents a usage
+message and a sample run, such as the one below:
 ---
-so@elf:~/dokuwiki$ ./install_dokuwiki  ~/public_html/dokuwiki2/ http://www.splitbrain.org/_media/projects/dokuwiki/dokuwiki-2009-12-25.tgz http://elf.cs.pub.ro/so/wiki2/
-* Using download link http://www.splitbrain.org/_media/projects/dokuwiki/dokuwiki-2009-12-25.tgz
-  * Downloading DokuWiki ...  done.
-* Preparing installation folder /home/so/public_html/dokuwiki2/ ... done.
-* Installing plugins
-  * Installing plugin: Creole ... done.
-  * Installing plugin: Google Analytics ... done.
-  * Installing plugin: Include ... done.
-  * Installing plugin: Index-Menu ... done.
-  * Installing plugin: Display-Wiki-Page ...done.
-
-
-Installation complete.
-1. Open in web browser: http://elf.cs.pub.ro/so/wiki2/install.php
-2. After the install procedure run:
-   ./post_install_dokuwiki /home/so/public_html/dokuwiki2/ /so/wiki2/
-
-Now you're done.
+./dw-install ~/public_html/dw-test/ http://www.splitbrain.org/_media/projects/dokuwiki/dokuwiki-2011-05-25a.tgz http://swarm.cs.pub.ro/~razvan/dw-test
 ---
 
-* Open install URL (as mentioned in step 1 of the post-install message)
-and configure DokuWiki instance.
-** The web configuration interface is quite intuitive.
-** You will probably go for a public wiki (read access for everyone,
-and write access for registered users).
+While the script is running, it's also showing a log of activities, such
+as installing DokuWiki or various plugins.
 
-* Run the post install script (as mentioned in step 2 of the
-post-install message.
-** Sample run:
+When the script ends, the user is presented with a set of steps to
+follow:
 ---
-so@elf:~/dokuwiki$ ./post_install_dokuwiki /home/so/public_html/dokuwiki2/ /so/wiki2/
-Add to '/home/so/public_html/dokuwiki2/conf/local.php' the following lines (use the web interface in case you don't have enough rights):
-
-$conf['start'] = 'home';
-$conf['youarehere'] = 1;
-$conf['sneaky_index'] = 1;
-$conf['userewrite'] = '1';
-$conf['securecookie'] = 0;
-$conf['useslash'] = 1;
-$conf['sepchar'] = '-';
-$conf['plugin']['creole']['precedence'] = 'creole';
-$conf['plugin']['indexmenu']['page_index'] = 'home:index';
-$conf['plugin']['indexmenu']['skip_index'] = '/(home|playground)/';
-$conf['plugin']['indexmenu']['skip_file'] = '/^:home:index.txt$/';
-
-
-Add to the beginning of '/home/so/public_html/dokuwiki2/.htaccess' (after 'RewriteEngine on') the following lines (in case you want to enable HTTPS access to login and admin pages):
-
-# Switch to secure on login, profile and admin actions
-RewriteCond %{HTTPS} !on
-RewriteCond %{QUERY_STRING} do=(log|profile|admin)
-RewriteRule ^(.*) https://%{HTTP_HOST}/so/wiki2/$1 [R,QSA,L]
-
-# Change back to non-secure on show action
-RewriteCond %{HTTPS} on
-RewriteCond %{QUERY_STRING} (do=show|^$)
-RewriteCond %{REQUEST_METHOD} GET
-RewriteRule ^(.*) http://%{HTTP_HOST}/so/wiki2/$1 [R,QSA,L]
+1. Open in web browser: http://localhost/gogu/install.php
+2. Fill required information to complete the basic installation.
+3. Remove lala/install.php.bak file.
+4. Run:
+   ./dw-post-install /home/razvan/public_html/dw-test/ /~razvan/dw-test/
 ---
 
-* Add local.php configurations as mentioned in previous output. In case
-of no rights (the www-data user creates the file) use DokuWiki's web
-administrative interface.
+Accessing the browser is required for basic configuration of DokuWiki.
+We are currently looking for ways to automate this. The complete
+configuration (deploying pretty URLs and HTTPS support) is created
+through the use of the `dw-post-install' script.
 
-* In case you want HTTPS access, add the above mentioned configuration
-lines to the .htaccess file.
+You should run the `dw-post-install' script with the arguments presented
+at the end of the `dw-install' script.
 
-* Create index files/menus
-** The main index file is home:index. Type 'home:index' in DokuWiki's
-search bar and create the page. For index display I usually add the
-following syntax:
----
-{{indexmenu>..#2|js navbar nocookie id#random}}
----
-** I usually add an index menu to the first page in the wiki (home)
----
-= Wiki Name =
+The `dw-post-install' script is actually responsible for two things:
+i)  Updating the $DW_ROOT/conf/local.php file. That means wiki and plugin
+    configuration. The configuration is what we commonly use. Go through
+    file and update it according to your needs/preferences.
+ii) Creating the $DW_ROOT/.htaccess file. This file is responsible with
+    the configuration of pretty (hierarchical) URLs and HTTPS support.
 
-{{indexmenu>..#1|js navbar nocookie id#random}}
----
-** You can add indexes to namespaces (edit the $namespace/home page):
----
-= Namespace Name ==
+[1] http://www.splitbrain.org/projects/dokuwiki
 
-{{indexmenu>.#2|js}}
----
+
+= Upgrading DokuWiki =
+
+
+About every 6 months a new "stable" version of DokuWiki appears. This is
+signaled for an administrative logged in account through a notification
+in the wiki header.
+
+Upgrading DokuWiki is usually accomplished by copying the new DokuWiki
+files and the new plugins versions.
+
+The are two scripts you may use. One is to be run by root (the
+`dw-upgrade' script), while the other (the `dw-upgrade-no-root` script)
+may be run by a non-priviliged user. Each script creates a backup copy
+of the current wiki installation before upgrading.
+
+The `dw-upgrade' script (run by root) is to be used when your backup
+needs to be web accessible. The backup uses the precises ownership
+information and access rights (may be owned by `www-data') such that it
+would be an exact copy of the original DokuWiki installation. In order
+for the backup copy to be completely accesible, its `.htaccess' file
+should probably be updated.
+
+The backup directory passed to the scripts should exist. This is where
+the actual backup is created using a name starting with `dokuwiki-bak'.
+
+Sample run scripts:
+    ./dw-upgrade ~razvan/public_html/dw-test/ http://www.splitbrain.org/_media/projects/dokuwiki/dokuwiki-2011-05-25a.tgz ~razvan/public_html/backup/
+    ./dw-upgrade-no-root ~razvan/public_html/dw-test/ http://www.splitbrain.org/_media/projects/dokuwiki/dokuwiki-2011-05-25a.tgz ~razvan/public_html/backup/
+
+
+= Further Info =
+
+
+Check the tutorial I've written[1]. It presents the installation and
+configuration process in greater detail.
+
+The DokuWiki page[2] is the place to go for complete information regarding
+configuration, plugins and others.
+
+[1] http://swarm.cs.pub.ro/~razvan/dokuwiki/tutorials/dokuwiki
+[2] http://www.dokuwiki.org/dokuwiki

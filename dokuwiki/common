@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# Print messages to stderr.
+err()
+{
+    echo "$@" 1>&2
+}
+
+# Remove trailing slash from path.
+remove_trailing_slash()
+{
+    dir="$1"
+    echo ${dir%/}
+}
+
+# Install DokuWiki (http://www.splitbrain.org/projects/dokuwiki)
+install_dokuwiki()
+{
+    download_url="$1"
+    wget "$download_url" -O dokuwiki.tar.gz -a "$log"
+    tar xzf dokuwiki.tar.gz >> "$log" 2>&1
+    d=$(find . -maxdepth 1 -type d | grep -v "^.$" | head -n 1)
+    mv "$d"/* .
+    rm -fr "$d"
+    rm -f dokuwiki.tar.gz
+}
+
+# Plugin: Creole
+# from: http://www.dokuwiki.org/plugin:creole
+install_plugin_creole()
+{
+    wget https://github.com/dokufreaks/plugin-creole/tarball/master -O plugin-creole.tar.gz -a "$log"
+    tar --overwrite -xzf plugin-creole.tar.gz >> "$log" 2>&1
+    rm -f plugin-creole.tar.gz
+    rm -fr creole
+    mv dokufreaks-plugin-creole* creole
+}
+
+# Plugin: Google Analytics
+# from: http://www.dokuwiki.org/plugin:googleanalytics
+install_plugin_googleanalytics()
+{
+    wget http://cloud.github.com/downloads/tatewake/dokuwiki-plugin-googleanalytics/googleanalytics-stable.tar.gz -a "$log"
+    tar --overwrite -xzf googleanalytics-stable.tar.gz >> "$log" 2>&1
+    rm -f googleanalytics-stable.tar.gz
+}
+
+# Plugin: include
+# from: http://www.dokuwiki.org/plugin:include
+install_plugin_include()
+{
+    wget http://github.com/dokufreaks/plugin-include/tarball/master -O plugin-include.tar.gz -a "$log"
+    tar --overwrite -xzf plugin-include.tar.gz >> "$log" 2>&1
+    rm -f plugin-include.tar.gz
+    rm -fr include
+    mv dokufreaks-plugin-include* include
+}
+
+# Plugin: index menu
+# from: http://www.dokuwiki.org/plugin:indexmenu
+install_plugin_indexmenu()
+{
+    wget http://samuele.netsons.org/dokuwiki/media/indexmenu.zip -a "$log"
+    unzip -o indexmenu.zip >> "$log" 2>&1
+    rm -f indexmenu.zip
+}
+
+# Plugin: display wiki page
+# from: http://www.dokuwiki.org/plugin:displaywikipage
+install_plugin_displaywikipage()
+{
+    wget http://cloud.github.com/downloads/tatewake/dokuwiki-plugin-displaywikipage/displaywikipage-stable.tar.gz -a "$log"
+    tar --overwrite -xzf displaywikipage-stable.tar.gz >> "$log" 2>&1
+    rm -f displaywikipage-stable.tar.gz
+}
+
+# Experimental Auth Backends
+# from: http://www.dokuwiki.org/auth:ggauth
+install_ggauth()
+{
+    wget http://lastweekend.com.au/ggauth.5.zip -a "$log"
+    unzip -o ggauth.5.zip >> "$log" 2>&1
+    rm -f ggauth.5.zip
+}

@@ -11,7 +11,7 @@ $conf['start'] = 'home';
 $conf['youarehere'] = 1;
 $conf['useacl'] = 1;
 $conf['superuser'] = '@admin';
-$conf['disableactions'] = 'register';
+$conf['disableactions'] = 'register,profile,resendpwd';
 $conf['sneaky_index'] = 1;
 $conf['securecookie'] = 0;
 $conf['userewrite'] = '1';
@@ -23,7 +23,7 @@ $conf['plugin']['indexmenu']['skip_file'] = '/^:home:index.txt$/';
 $conf['plugin']['creole']['precedence'] = 'creole';
 
 # LDAP authentication configuration
-# $conf['authtype'] = 'ldap';
+$conf['authtype'] = 'ldap';
 $conf['auth']['ldap']['port'] = '636';
 $conf['auth']['ldap']['server'] = 'ldaps://swarm.cs.pub.ro';
 $conf['auth']['ldap']['usertree'] = 'ou=People,dc=swarm,dc=cs,dc=pub,dc=ro';

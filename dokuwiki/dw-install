@@ -1,0 +1,123 @@
+#!/bin/bash
+
+#
+# Create basic installation of DokuWiki.
+# For a complete installation the `dw-post-install' script should be run
+#   after this script. See final messages.
+# Internet access is required for downloading the DokuWiki archive.
+#
+# 2009, Mircea Bardac, cs@mircea.bardac.net
+# 2009-2011, Razvan Deaconescu, razvan.deaconescu@cs.pub.ro
+#
+
+# Read functions.
+source common
+
+if test $# -ne 3; then
+    err "DokuWiki basic installation script"
+    err "  Usage:"
+    err "    $0 installation-directory download-url wiki-url"
+    err "  Sample usage:"
+    err "    $0 ~/public_html/dw-test/ http://www.splitbrain.org/_media/projects/dokuwiki/dokuwiki-2011-05-25a.tgz http://swarm.cs.pub.ro/~razvan/dw-test"
+    exit 1
+fi
+
+install_dir="$1"
+download_url="$2"
+wiki_url="$3"
+log=$(mktemp)
+
+# Create installation directory in case it doesn't exist.
+if ! test -d "$install_dir"; then
+    echo "Warning: $install_dir doesn't exist. Creating it."
+    mkdir "$install_dir" || exit 1
+fi
+
+# Check if installation directory is empty.
+_tmp_str=$(find "$install_dir" -mindepth 1)
+if ! test -z "$_tmp_str"; then
+    echo "$install_dir is not an empty folder."
+    echo -n "  Continue installation? (Y/n) "
+    read ans
+    if test "$ans" = "n"; then
+        exit 0
+    fi
+fi
+
+echo ""
+echo "* Logging information to $log."
+
+# Download dokuwiki archive file from $download_url.
+pushd "$install_dir" > /dev/null
+echo "* Using download link $download_url"
+
+echo -n "  * Downloading DokuWiki ... "
+install_dokuwiki "$download_url"
+echo "done."
+
+echo -n "* Preparing installation folder $install_dir ... "
+
+# Adding write permissions to conf/ and data/ folders.
+chmod -R g+w conf/
+chmod -R g+w data/
+
+# Update install.php with dokuwiki.php hash.
+hash=$(md5sum conf/dokuwiki.php | cut -d ' ' -f 1)
+date=$(date +%Y-%m-%d)
+sed -i.bak "s/^\(\$dokuwiki_hash.*\)$/\1\n    '"$date"'   => '"$hash"',/" install.php
+
+echo "done."
+
+popd > /dev/null
+
+# Install plugins.
+
+pushd "$install_dir"/lib/plugins > /dev/null
+echo "* Installing plugins"
+
+echo -n "  * Installing plugin: Creole ... "
+install_plugin_creole
+echo "done."
+
+echo -n "  * Installing plugin: Google Analytics ... "
+install_plugin_googleanalytics
+echo "done."
+
+echo -n "  * Installing plugin: Include ... "
+install_plugin_include
+echo "done."
+
+echo -n "  * Installing plugin: Index-Menu ... "
+install_plugin_indexmenu
+echo "done."
+
+echo -n "  * Installing plugin: Display-Wiki-Page ..."
+install_plugin_displaywikipage
+echo "done."
+
+popd > /dev/null
+
+# Install "extra juice".
+
+pushd "$install_dir" > /dev/null
+
+echo -n "  * Installing ggauth backend ..."
+install_ggauth
+echo "done."
+
+popd > /dev/null
+
+# Add slash to DokuWiki URL in case it doesn't exist.
+dw_url_slash=$(sed "s|[/]\?[ \t]*/$|/|" <<<"$wiki_url/")
+
+# Extract rewrite base (for mod_rewrite) (remove http[s]://$host_name).
+rw_base=$(sed "s|^http[s]\?://[^/]\+||" <<<"$dw_url_slash")
+
+echo
+echo "Installation complete."
+echo "1. Open in web browser: ${dw_url_slash}install.php"
+echo "2. Fill required information to complete the basic installation."
+echo "3. Remove $install_dir/install.php.bak file."
+echo "4. Run:"
+echo "   ./dw-post-install $install_dir $rw_base"
+echo
