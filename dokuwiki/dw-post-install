@@ -21,7 +21,7 @@ if test $# -ne 2; then
 fi
 
 install_dir=$(remove_trailing_slash "$1")
-rw_base=$(remove_trailing_slash "$2")
+rw_base=$(remove_starting_slash $(remove_trailing_slash "$2"))
 
 pushd $install_dir > /dev/null
 
@@ -69,7 +69,7 @@ RewriteCond %{REQUEST_METHOD} GET
 RewriteRule ^(.*) http://%{HTTP_HOST}/$rw_base/\$1 [R,QSA,L]
 
 # Rewrite pretty URLs
-RewriteBase $rw_base
+RewriteBase /$rw_base
 
 RewriteRule ^_media/(.*)              lib/exe/fetch.php?media=\$1  [QSA,L]
 RewriteRule ^_detail/(.*)             lib/exe/detail.php?media=\$1  [QSA,L]

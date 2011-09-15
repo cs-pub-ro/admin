@@ -13,6 +13,13 @@ remove_trailing_slash()
     echo ${dir%/}
 }
 
+# Remove starting slash from path.
+remove_starting_slash()
+{
+    dir="$1"
+    echo ${dir#/}
+}
+
 # Install DokuWiki (http://www.splitbrain.org/projects/dokuwiki)
 install_dokuwiki()
 {
