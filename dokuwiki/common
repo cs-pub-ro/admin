@@ -69,6 +69,7 @@ install_plugin_indexmenu()
 {
     wget http://samuele.netsons.org/dokuwiki/media/indexmenu.zip -a "$log"
     unzip -o indexmenu.zip >> "$log" 2>&1
+    mv indexmenu-master indexmenu >> "$log" 2>&1
     rm -f indexmenu.zip
 }
 
