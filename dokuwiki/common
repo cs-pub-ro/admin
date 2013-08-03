@@ -82,6 +82,25 @@ install_plugin_displaywikipage()
     rm -f displaywikipage-stable.tar.gz
 }
 
+# Authsplit plugin
+# from: https://www.dokuwiki.org/plugin:authsplit
+install_plugin_authsplit()
+{
+    wget https://github.com/pief/authsplit/zipball/master -O authsplit.zip -a "$log"
+    unzip -o authsplit.zip >> "$log" 2>&1
+    mv *-authsplit-* authsplit
+    rm -f authsplit.zip
+}
+
+# Chained plugin
+# from: https://www.dokuwiki.org/plugin:authchained
+install_plugin_authchained()
+{
+    wget http://userpage.physik.fu-berlin.de/~pneuser/authchained.zip -a "$log"
+    unzip -o authchained.zip >> "$log" 2>&1
+    rm -f authchained.zip
+}
+
 # Experimental Auth Backends
 # from: http://www.dokuwiki.org/auth:ggauth
 install_ggauth()

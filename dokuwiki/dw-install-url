@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if test $# -ne 1; then
+    echo "Usage: $0 wiki-install-url" 1>&2
+    exit 1
+fi
+
+url="$1"
+
+echo "Input required configuration parameters"
+echo ""
+echo -n "  title: "
+read title
+echo -n "  superuser: "
+read superuser
+echo -n "  fullname: "
+read fullname
+echo -n "  email: "
+read email
+echo -n "  password: "
+read password
+
+wget -O /dev/null -o /dev/null --post-data "d[title]=$title&d[superuser]=$superuser&d[fullname]=$fullname&d[email]=$email&d[password]=$password&d[confirm]=$password&d[policy]=1&submit=Save" "$url"

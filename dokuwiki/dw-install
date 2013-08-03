@@ -95,15 +95,23 @@ echo -n "  * Installing plugin: Display-Wiki-Page ..."
 install_plugin_displaywikipage
 echo "done."
 
+echo -n "  * Installing plugin: authsplit ..."
+install_plugin_authsplit
+echo "done."
+
+echo -n "  * Installing plugin: authchained ..."
+install_plugin_authchained
+echo "done."
+
 popd > /dev/null
 
 # Install "extra juice".
 
 pushd "$install_dir" > /dev/null
 
-echo -n "  * Installing ggauth backend ..."
-install_ggauth
-echo "done."
+#echo -n "  * Installing ggauth backend ..."
+#install_ggauth
+#echo "done."
 
 popd > /dev/null
 
