@@ -20,4 +20,4 @@ read email
 echo -n "  password: "
 read password
 
-wget -O /dev/null -o /dev/null --post-data "d[title]=$title&d[superuser]=$superuser&d[fullname]=$fullname&d[email]=$email&d[password]=$password&d[confirm]=$password&d[policy]=1&submit=Save" "$url"
+wget -O /dev/null -o /dev/null --post-data "d[title]=$title&d[superuser]=$superuser&d[fullname]=$fullname&d[email]=$email&d[password]=$password&d[confirm]=$password&d[policy]=1&d[license]=cc-by-nc-sa&submit=Save" "$url"
