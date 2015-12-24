@@ -1,0 +1,48 @@
+#!/bin/bash
+
+DEBUG=false
+warning_days=30 # Number of days to warn about soon-to-expire certs
+
+while read HOSTNAME; do
+    $DEBUG && echo "Checking host [$HOSTNAME]"
+
+    output=$(echo | timeout 5 openssl s_client -connect ${HOSTNAME}:443 \
+                -servername ${HOSTNAME} 2>/dev/null |\
+        sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' |\
+        openssl x509 -noout -subject -dates 2>/dev/null)
+
+    if [ "$?" -ne 0 ]; then
+        $DEBUG && echo "Error connecting to host [$HOSTNAME]"
+        echo "E: $HOSTNAME"
+        continue
+    fi
+
+    start_date=$(echo $output | sed 's/.*notBefore=\(.*\).*not.*/\1/g')
+    end_date=$(echo $output | sed 's/.*notAfter=\(.*\)$/\1/g')
+
+    start_epoch=$(date +%s -d "$start_date")
+    end_epoch=$(date +%s -d "$end_date")
+
+    epoch_now=$(date +%s)
+
+    if [ "$start_epoch" -gt "$epoch_now" ]; then
+        $DEBUG && echo "Certificate for [$HOSTNAME] is not yet valid"
+    fi
+
+    seconds_to_expire=$(($end_epoch - $epoch_now))
+    days_to_expire=$(($seconds_to_expire / 86400))
+
+    $DEBUG && echo "Days to expiry: ($days_to_expire)"
+
+    warning_seconds=$((86400 * $warning_days))
+
+    if [ "$seconds_to_expire" -lt 0 ]; then
+        $DEBUG && echo "Certificate for [$HOSTNAME] has expired"
+        echo "X: $HOSTNAME"
+    elif [ "$seconds_to_expire" -lt "$warning_seconds" ]; then
+        $DEBUG && echo "Certificate for [$HOSTNAME] will expire in less than $warning_days days"
+        echo "W: $HOSTNAME"
+    else
+        echo "O: $HOSTNAME"
+    fi
+done

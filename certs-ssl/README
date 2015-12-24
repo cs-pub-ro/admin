@@ -1,0 +1,19 @@
+check-cert is a Bash script for checking certificate expiry on remote hosts.
+Hostnames are provided to standard input. Sample runs:
+
+    $ cat hosts-to-check | ./check-cert
+    W: acse.pub.ro
+    X: aimas.cs.pub.ro
+    E: anaconda.cs.pub.ro
+    [...]
+
+    $ echo vmchecker.cs.pub.ro | ./check-cert
+    O: vmchecker.cs.pub.ro
+
+    $ echo planet.cs.pub.ro | ./check-cert
+    O: planet.cs.pub.ro
+
+
+W means warning (soon to expire)
+E means expired (needs to be replaced)
+O means OK
