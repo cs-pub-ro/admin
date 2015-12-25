@@ -39,10 +39,23 @@ while read HOSTNAME; do
     if [ "$seconds_to_expire" -lt 0 ]; then
         $DEBUG && echo "Certificate for [$HOSTNAME] has expired"
         echo "X: $HOSTNAME"
+        continue
     elif [ "$seconds_to_expire" -lt "$warning_seconds" ]; then
         $DEBUG && echo "Certificate for [$HOSTNAME] will expire in less than $warning_days days"
         echo "W: $HOSTNAME"
+        continue
+    fi
+
+    echo "" | timeout 5 openssl s_client -showcerts -servername ${HOSTNAME} \
+        -status -verify 0 -connect ${HOSTNAME}:443 2>&1 |\
+        grep 'Verify return code: 0 (ok)' > /dev/null 2>&1
+
+    if [ "$?" -ne 0 ]; then
+        $DEBUG && echo "Certificate for [$HOSTNAME] is invalid"
+        echo "I: $HOSTNAME"
+        continue
     else
+        $DEBUG && echo "Certificate for [$HOSTNAME] is valid and not expired"
         echo "O: $HOSTNAME"
     fi
 done
