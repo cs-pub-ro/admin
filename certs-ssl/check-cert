@@ -3,7 +3,7 @@
 DEBUG=false
 warning_days=30 # Number of days to warn about soon-to-expire certs
 
-while read HOSTNAME; do
+grep -v '^#' | while read HOSTNAME; do
     $DEBUG && echo "Checking host [$HOSTNAME]"
 
     output=$(echo | timeout 5 openssl s_client -connect ${HOSTNAME}:443 \
