@@ -22,7 +22,7 @@ setup()
 generate()
 {
 	echo "* openssl: creating private key ... "
-	openssl genrsa -out $KEY_PATH/$DOMAIN_NAME.key 1024
+	openssl genrsa -out $KEY_PATH/$DOMAIN_NAME.key 4096
 	echo -e "* openssl: created private key.\n"
 
 	echo "* openssl: creating Certificate Signing Request ..."
