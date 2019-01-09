@@ -1,7 +1,7 @@
-acse.pub.ro
+#acse.pub.ro
 aimas.cs.pub.ro
-blog.acs.pub.ro
-boboc.cs.pub.ro
+#blog.acs.pub.ro
+#boboc.cs.pub.ro
 catiis.cs.pub.ro
 ccs-lab.cs.pub.ro
 cs.curs.pub.ro
@@ -41,7 +41,7 @@ theoretical.cs.pub.ro
 titan.cs.pub.ro
 torrent.cs.pub.ro
 turing.cs.pub.ro
-upload.cs.pub.ro
+#upload.cs.pub.ro
 vmchecker.cs.pub.ro
 vmx.cs.pub.ro
 wiki.cs.pub.ro
@@ -54,3 +54,4 @@ acs-ixia-ctf.security.cs.pub.ro
 owasp-ctf.security.cs.pub.ro
 sis-ctf.security.cs.pub.ro
 sss-ctf.security.cs.pub.ro
+uso-ctf.security.cs.pub.ro
