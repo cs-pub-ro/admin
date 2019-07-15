@@ -1,0 +1,16 @@
+#!/bin/bash
+
+RSYNC=/usr/bin/rsync
+SSH=/usr/bin/ssh
+OPTS="-avz --delete-after"
+
+# TODO: Update to the SSH private key path and remote user and host.
+KEY=/home/razvan/.ssh/id_rsa
+RUSER=cs-wiki
+RHOST=koala.cs.pub.ro
+
+# TODO: If required, update to remote data/ folder path and local path to backup.
+RPATH=public_html/wiki/data
+LPATH=wiki.cs.pub.ro-$(/bin/date +"%Y-%m-%d_%H_%M")
+
+$RSYNC $OPTS -e "$SSH -i $KEY" "$RUSER"@"$RHOST":"$RPATH" "$LPATH"
