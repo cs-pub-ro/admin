@@ -35,7 +35,7 @@ def main():
 
     group = args.group
 
-    with open(args.input_conf_file) as in_f, open(args.input_conf_file + "-new", "w") as out_f:
+    with open(args.input_conf_file, 'r', encoding='utf8') as in_f, open(args.input_conf_file + "-new", "w", encoding='utf8') as out_f:
         count = 0
         for line in in_f:
             if re.search(".*:.*:.*:.*:.*", line):
